@@ -1,4 +1,7 @@
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    ops::{Deref, DerefMut},
+};
 
 use rand::Rng;
 
@@ -201,16 +204,16 @@ impl<R: Rng> SmartHouse<R> {
         Self { id, rooms }
     }
 
-    pub fn get_room(&self, room_index: usize) -> &Box<dyn AnyRoom<R>> {
+    pub fn get_room(&self, room_index: usize) -> &dyn AnyRoom<R> {
         match self.rooms.get(room_index) {
-            Some(room) => room,
+            Some(room) => room.deref(),
             None => panic!("The room index is out of range"),
         }
     }
 
-    pub fn get_room_mut(&mut self, room_index: usize) -> &mut Box<dyn AnyRoom<R>> {
+    pub fn get_room_mut(&mut self, room_index: usize) -> &mut dyn AnyRoom<R> {
         match self.rooms.get_mut(room_index) {
-            Some(room) => room,
+            Some(room) => room.deref_mut(),
             None => panic!("The room index is out of range"),
         }
     }
