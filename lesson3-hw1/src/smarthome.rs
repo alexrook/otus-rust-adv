@@ -1,6 +1,5 @@
 use std::fmt::{self, Display};
 
-use rand::prelude::ThreadRng;
 use rand::Rng;
 
 type EntityId = u128;
