@@ -1,3 +1,7 @@
 [workspace]
 
+members = [
+    "lesson3-hw1",
+]
+
 resolver = "2"
