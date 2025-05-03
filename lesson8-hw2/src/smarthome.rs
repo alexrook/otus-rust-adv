@@ -1,68 +1,84 @@
 use std::{
-    fmt::{self, Display},
-    ops::{Deref, DerefMut},
+    collections::HashMap,
+    fmt::{self},
 };
 
 use rand::Rng;
 
-type EntityId = u128;
-pub trait WithId {
-    fn get_id(&self) -> EntityId;
+pub trait WithModel {
+    fn get_model(&self) -> &str;
 }
 
 //Термометр
 #[derive(Debug, Clone)]
-pub struct Thermometer<R: Rng> {
-    id: EntityId,
+pub struct Thermometer<R> {
+    model: String,
     rnd: R,
 }
 
-impl<R: Rng> WithId for Thermometer<R> {
-    fn get_id(&self) -> EntityId {
-        self.id
+impl<R> WithModel for Thermometer<R> {
+    fn get_model(&self) -> &str {
+        &self.model
     }
 }
 
-impl<R: Rng> fmt::Display for Thermometer<R> {
+impl<R> fmt::Display for Thermometer<R> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Thermometer[id:{}]", self.get_id())
+        write!(f, "Thermometer[model:{}]", self.get_model())
     }
 }
 
-impl<R: Rng> Thermometer<R> {
-    pub fn new(id: EntityId, rnd: R) -> Self {
-        Thermometer { id, rnd }
+impl<R> Thermometer<R> {
+    pub fn new<S>(model: S, rnd: R) -> Self
+    where
+        S: Into<String>,
+    {
+        Thermometer {
+            model: model.into(),
+            rnd,
+        }
     }
 
-    pub fn themperature(&mut self) -> f32 {
+    pub fn themperature(&mut self) -> f32
+    where
+        R: Rng,
+    {
         self.rnd.random::<f32>() * 100_f32
     }
 }
 
 //Розетка
 #[derive(Debug, Clone)]
-pub struct Socket<R: Rng> {
-    id: EntityId,
+pub struct Socket<R> {
+    model: String,
     pub is_on: bool,
     rnd: R,
 }
 
-impl<R: Rng> WithId for Socket<R> {
-    fn get_id(&self) -> EntityId {
-        self.id
+impl<R> WithModel for Socket<R> {
+    fn get_model(&self) -> &str {
+        &self.model
     }
 }
 
-impl<R: Rng> fmt::Display for Socket<R> {
+impl<R> fmt::Display for Socket<R> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Socket[id:{}, is_on:{}]", self.get_id(), self.is_on)
+        write!(
+            f,
+            "Socket[model:{}, is_on:{}]",
+            self.get_model(),
+            self.is_on
+        )
     }
 }
 
-impl<R: Rng> Socket<R> {
-    pub fn new(id: EntityId, rnd: R) -> Self {
+impl<R> Socket<R> {
+    pub fn new<S>(model: S, rnd: R) -> Self
+    where
+        S: Into<String>,
+    {
         Socket {
-            id,
+            model: model.into(),
             is_on: false,
             rnd,
         }
@@ -76,7 +92,10 @@ impl<R: Rng> Socket<R> {
         self.is_on = false
     }
 
-    pub fn power(&mut self) -> f32 {
+    pub fn power(&mut self) -> f32
+    where
+        R: Rng,
+    {
         if self.is_on {
             self.rnd.random::<f32>() + 0.1
         } else {
@@ -85,21 +104,22 @@ impl<R: Rng> Socket<R> {
     }
 }
 
-pub enum SmartDevice<R: Rng> {
+#[derive(Debug)]
+pub enum SmartDevice<R> {
     Thermometer(Thermometer<R>),
     Socket(Socket<R>),
 }
 
-impl<R: Rng> WithId for SmartDevice<R> {
-    fn get_id(&self) -> EntityId {
+impl<R> WithModel for SmartDevice<R> {
+    fn get_model(&self) -> &str {
         match self {
-            Self::Thermometer(t) => t.get_id(),
-            Self::Socket(s) => s.get_id(),
+            Self::Thermometer(t) => t.get_model(),
+            Self::Socket(s) => s.get_model(),
         }
     }
 }
 
-impl<R: Rng> fmt::Display for SmartDevice<R> {
+impl<R> fmt::Display for SmartDevice<R> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Socket(socket) => socket.fmt(f),
@@ -108,42 +128,35 @@ impl<R: Rng> fmt::Display for SmartDevice<R> {
     }
 }
 
-impl<R: Rng> From<Socket<R>> for SmartDevice<R> {
+impl<R> From<Socket<R>> for SmartDevice<R> {
     fn from(value: Socket<R>) -> Self {
         Self::Socket(value)
     }
 }
 
-impl<R: Rng> From<Thermometer<R>> for SmartDevice<R> {
+impl<R> From<Thermometer<R>> for SmartDevice<R> {
     fn from(value: Thermometer<R>) -> Self {
         Self::Thermometer(value)
     }
 }
 
-pub trait AnyRoom<R: Rng>: WithId + fmt::Display {
-    fn get_device(&self, index: usize) -> &SmartDevice<R>;
-    fn get_device_mut(&mut self, index: usize) -> &mut SmartDevice<R>;
-}
 //Комната
-pub struct Room<const S: usize, R: Rng> {
-    id: EntityId,
-    devices: [SmartDevice<R>; S],
+#[derive(Debug, Default)]
+pub struct Room<R> {
+    devices: HashMap<String, SmartDevice<R>>,
 }
 
-impl<const S: usize, R: Rng> WithId for Room<S, R> {
-    fn get_id(&self) -> EntityId {
-        self.id
-    }
-}
-
-impl<const S: usize, R: Rng> fmt::Display for Room<S, R> {
+impl<R> fmt::Display for Room<R> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Room[id:{}, devices[", self.get_id())?;
+        let size = self.devices.len();
+        write!(f, "Room[devices[")?;
 
-        for (i, dev) in self.devices.iter().enumerate() {
+        for (i, (name, dev)) in self.devices.iter().enumerate() {
+            write!(f, "Device[name:{},[", name)?;
             dev.fmt(f)?;
-            if i < (S - 1) {
-                write!(f, ",")?;
+            write!(f, "]")?;
+            if i < size {
+                write!(f, ", ")?;
             }
         }
         write!(f, "]]")?;
@@ -151,47 +164,45 @@ impl<const S: usize, R: Rng> fmt::Display for Room<S, R> {
     }
 }
 
-impl<const S: usize, R: Rng> Room<S, R> {
-    pub fn new(id: EntityId, devices: [SmartDevice<R>; S]) -> Self {
-        Room { id, devices }
-    }
-}
-
-impl<const S: usize, R: Rng> AnyRoom<R> for Room<S, R> {
-    fn get_device(&self, index: usize) -> &SmartDevice<R> {
-        match self.devices.get(index) {
-            Some(dev) => dev,
-            None => panic!("The device index is out of range"),
-        }
+impl<R> Room<R> {
+    pub fn new(devices: HashMap<String, SmartDevice<R>>) -> Self {
+        Room { devices }
     }
 
-    fn get_device_mut(&mut self, index: usize) -> &mut SmartDevice<R> {
-        match self.devices.get_mut(index) {
-            Some(dev) => dev,
-            None => panic!("The device index is out of range"),
-        }
+    pub fn get_device(&self, name: &str) -> Option<&SmartDevice<R>> {
+        self.devices.get(name)
+    }
+
+    pub fn get_device_mut(&mut self, name: &str) -> Option<&mut SmartDevice<R>> {
+        self.devices.get_mut(name)
+    }
+
+    //returns an old device if it presents
+    pub fn add_device(&mut self, name: String, device: SmartDevice<R>) -> Option<SmartDevice<R>> {
+        self.devices.insert(name, device)
+    }
+
+    pub fn remove_device(&mut self, name: &str) -> Option<SmartDevice<R>> {
+        self.devices.remove(name)
     }
 }
 
 //Дом
-pub struct SmartHouse<R: Rng> {
-    id: EntityId,
-    rooms: Vec<Box<dyn AnyRoom<R>>>,
+#[derive(Debug, Default)]
+pub struct SmartHouse<R> {
+    pub name: String,
+    rooms: HashMap<String, Room<R>>,
 }
 
-impl<R: Rng> WithId for SmartHouse<R> {
-    fn get_id(&self) -> EntityId {
-        self.id
-    }
-}
-
-impl<R: Rng> Display for SmartHouse<R> {
+impl<R> fmt::Display for SmartHouse<R> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let rooms_count = self.rooms.len();
-        write!(f, "SmartHome[id:{}, rooms[", self.get_id())?;
-        for (idx, room) in self.rooms.iter().enumerate() {
+        write!(f, "SmartHome[name:{}, rooms[", self.name)?;
+        for (idx, (room_name, room)) in self.rooms.iter().enumerate() {
+            write!(f, "Room[name:{},", room_name)?;
             room.fmt(f)?;
-            if idx + 1 < rooms_count {
+            write!(f, "]")?;
+            if idx < rooms_count {
                 write!(f, ",")?;
             }
         }
@@ -199,40 +210,78 @@ impl<R: Rng> Display for SmartHouse<R> {
         Ok(())
     }
 }
-impl<R: Rng> SmartHouse<R> {
-    pub fn new(id: EntityId, rooms: Vec<Box<dyn AnyRoom<R>>>) -> Self {
-        Self { id, rooms }
-    }
 
-    pub fn get_room(&self, room_index: usize) -> &dyn AnyRoom<R> {
-        match self.rooms.get(room_index) {
-            Some(room) => room.deref(),
-            None => panic!("The room index is out of range"),
+impl<R> SmartHouse<R> {
+    pub fn new<S>(name: S, rooms: HashMap<String, Room<R>>) -> Self
+    where
+        S: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            rooms,
         }
     }
 
-    pub fn get_room_mut(&mut self, room_index: usize) -> &mut dyn AnyRoom<R> {
-        match self.rooms.get_mut(room_index) {
-            Some(room) => room.deref_mut(),
-            None => panic!("The room index is out of range"),
+    pub fn empty(name: String) -> Self {
+        Self {
+            name,
+            rooms: HashMap::new(),
         }
+    }
+
+    pub fn get_room(&self, room_name: &str) -> Option<&Room<R>> {
+        self.rooms.get(room_name)
+    }
+
+    pub fn get_room_mut(&mut self, room_name: &str) -> Option<&mut Room<R>> {
+        self.rooms.get_mut(room_name)
+    }
+
+    pub fn get_device_mut<'a, 'b>(
+        &'a mut self,
+        room: &'b str,
+        device: &'b str,
+    ) -> Result<&'a mut SmartDevice<R>, DeviceNotFound<'b>> {
+        self.get_room_mut(room)
+            .and_then(|room| room.get_device_mut(device))
+            .ok_or(DeviceNotFound { room, device })
     }
 }
 
+#[derive(Debug)]
+pub struct DeviceNotFound<'a> {
+    room: &'a str,
+    device: &'a str,
+}
+
+impl<'a> fmt::Display for DeviceNotFound<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Device not found for room:{}, device:{}",
+            self.room, self.device
+        )
+    }
+}
+
+impl<'a> std::error::Error for DeviceNotFound<'a> {}
+
 #[cfg(test)]
 mod tests {
+    use rand::rngs::ThreadRng;
+
     use super::*;
 
     #[test]
     fn thermometer_should_work() {
-        let mut t1 = Thermometer::new(1234, rand::rng());
+        let mut t1 = Thermometer::new("Farengate", rand::rng());
         let th1 = t1.themperature();
         assert!(size_of_val(&th1) > 0); //just in case
     }
 
     #[test]
     fn socket_should_work() {
-        let mut s1 = Socket::new(1234, rand::rng());
+        let mut s1 = Socket::new("Type A", rand::rng());
 
         s1.on();
         assert!(s1.is_on);
@@ -246,15 +295,18 @@ mod tests {
     }
 
     #[test]
-    fn room_constr_should_work() {
+    fn room_const_should_work() {
         let rnd = rand::rng();
-        let r1 = Room::new(
-            123,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Thermometer::new(345, rnd.clone()).into(),
-            ],
-        );
+        let r1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "therm1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
 
         assert_eq!(r1.devices.len(), 2);
     }
@@ -262,35 +314,41 @@ mod tests {
     #[test]
     fn room_get_device_should_work() {
         let rnd = rand::rng();
-        let socket = Socket::new(123, rnd.clone());
-        let thermometer = Thermometer::new(345, rnd.clone()).into();
-        let mut r1 = Room::new(123, [socket.into(), thermometer]);
+        let socket = Socket::new(123.to_string(), rnd.clone());
+        let thermometer = Thermometer::new(345.to_string(), rnd.clone());
+        let mut r1 = Room::new(HashMap::from([
+            ("s1".to_owned(), socket.into()),
+            ("t1".to_owned(), thermometer.into()),
+        ]));
 
-        let s_ref = r1.get_device(0);
-        assert_eq!(s_ref.get_id(), 123);
+        let opt_ref = r1.get_device("s1");
+        assert_eq!(opt_ref.map(|d| d.get_model()), Some("123"));
 
-        let s_ref = r1.get_device_mut(0);
-        assert_eq!(s_ref.get_id(), 123);
+        let opt_ref = r1.get_device_mut("s1");
+        assert_eq!(opt_ref.as_ref().map(|d| d.get_model()), Some("123"));
 
-        match s_ref {
-            SmartDevice::Socket(socket) => {
+        match opt_ref {
+            Some(SmartDevice::Socket(socket)) => {
                 socket.on();
                 assert!(socket.power() > 0.0);
             }
-            _ => panic!("Something wrong with your code it should return a Socket instance"),
+            _ => panic!("Something wrong with your code, it should return a Socket instance"),
         }
     }
 
     #[test]
     fn room_display_should_work() {
         let rnd = rand::rng();
-        let r1 = Room::new(
-            123,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Thermometer::new(345, rnd.clone()).into(),
-            ],
-        );
+        let r1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "therm1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
 
         let display_str = format!("{:}", r1);
 
@@ -304,30 +362,39 @@ mod tests {
     fn smart_house_constr_should_work() {
         let rnd = rand::rng();
 
-        let mut rooms: Vec<Box<dyn AnyRoom<_>>> = Vec::new();
+        let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "therm1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
 
-        let room1 = Room::new(
-            123,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Thermometer::new(345, rnd.clone()).into(),
-            ],
+        let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "socket2".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "therm1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
+
+        let smart_house = SmartHouse::new(
+            "The House That Jack Built",
+            HashMap::from([
+                ("Molly's chamber".to_owned(), room1),
+                ("Jack's room".to_owned(), room2),
+            ]),
         );
-
-        rooms.push(Box::new(room1));
-
-        let room2 = Room::new(
-            123,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Socket::new(345, rnd.clone()).into(),
-                Thermometer::new(678, rnd.clone()).into(),
-            ],
-        );
-
-        rooms.push(Box::new(room2));
-
-        let smart_house = SmartHouse::new(123, rooms);
 
         assert_eq!(smart_house.rooms.len(), 2)
     }
@@ -336,35 +403,56 @@ mod tests {
     fn smart_house_get_room_should_work() {
         let rnd = rand::rng();
 
-        let mut rooms: Vec<Box<dyn AnyRoom<_>>> = Vec::new();
+        let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "therm1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
 
-        let room1 = Room::new(
-            123,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Thermometer::new(345, rnd.clone()).into(),
-            ],
+        let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "socket2".to_owned(),
+                Socket::new("Europe", rnd.clone()).into(),
+            ),
+            (
+                "t1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
+
+        let smart_house = SmartHouse::new(
+            "The House That Jack Built",
+            HashMap::from([
+                ("Molly's chamber".to_owned(), room1),
+                ("Jack's room".to_owned(), room2),
+            ]),
         );
 
-        rooms.push(Box::new(room1));
-
-        let room2 = Room::new(
-            345,
-            [
-                Socket::new(123, rnd.clone()).into(),
-                Socket::new(345, rnd.clone()).into(),
-                Thermometer::new(678, rnd.clone()).into(),
-            ],
+        let room_opt = smart_house.get_room("Molly's chamber");
+        assert_eq!(
+            room_opt
+                .as_ref()
+                .and_then(|r| r.get_device("socket1").map(|d| d.get_model())),
+            Some("Europe")
         );
 
-        rooms.push(Box::new(room2));
-
-        let mut smart_house = SmartHouse::new(123, rooms);
-
-        let room_ref = smart_house.get_room(1);
-        assert_eq!(room_ref.get_id(), 345);
-
-        let room_ref = smart_house.get_room_mut(0);
-        assert_eq!(room_ref.get_id(), 123);
+        let room_opt = smart_house.get_room("Jack's room");
+        assert_eq!(
+            room_opt
+                .as_ref()
+                .and_then(|r| r.get_device("t1").map(|d| d.get_model())),
+            Some("Celsius")
+        );
     }
+
+    //TODO test get_device by room and name
 }
