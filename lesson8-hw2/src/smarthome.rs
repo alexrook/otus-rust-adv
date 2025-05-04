@@ -248,7 +248,7 @@ impl<R> SmartHouse<R> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq, Eq)]
 pub struct DeviceNotFound<'a> {
     room: &'a str,
     device: &'a str,
@@ -454,5 +454,46 @@ mod tests {
         );
     }
 
-    //TODO test get_device by room and name
+    #[test]
+    fn smart_house_get_device_by_room_and_name_should_work() {
+        let rnd = rand::rng();
+
+        let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            ("s1".to_owned(), Socket::new("Europe", rnd.clone()).into()),
+            (
+                "t1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
+
+        let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
+            ("s1".to_owned(), Socket::new("Europe", rnd.clone()).into()),
+            ("s2".to_owned(), Socket::new("Europe", rnd.clone()).into()),
+            (
+                "t1".to_owned(),
+                Thermometer::new("Celsius", rnd.clone()).into(),
+            ),
+        ]));
+
+        let mut smart_house = SmartHouse::new(
+            "The House That Jack Built",
+            HashMap::from([
+                ("Molly's chamber".to_owned(), room1),
+                ("Jack's room".to_owned(), room2),
+            ]),
+        );
+
+        let maybe_device = smart_house.get_device_mut("Molly's chamber", "s1");
+        assert!(maybe_device.is_ok());
+        assert_eq!(maybe_device.unwrap().get_model(),"Europe");
+
+        let maybe_device = smart_house.get_device_mut("Jack's room", "foo-bar");
+        assert!(maybe_device.is_err());
+        assert_eq!(maybe_device.err().unwrap(),DeviceNotFound{
+            room:"Jack's room",
+            device:"foo-bar"
+        });
+
+    }
+    
 }
