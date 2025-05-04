@@ -67,7 +67,7 @@ impl<R> fmt::Display for Socket<R> {
             f,
             "Socket[model:{}, is_on:{}]",
             self.get_model(),
-            self.is_on
+            self.is_on,
         )
     }
 }
@@ -143,7 +143,7 @@ impl<R> From<Thermometer<R>> for SmartDevice<R> {
 //Комната
 #[derive(Debug, Default)]
 pub struct Room<R> {
-    devices: HashMap<String, SmartDevice<R>>,
+    pub devices: HashMap<String, SmartDevice<R>>,
 }
 
 impl<R> fmt::Display for Room<R> {
@@ -152,9 +152,7 @@ impl<R> fmt::Display for Room<R> {
         write!(f, "Room[devices[")?;
 
         for (i, (name, dev)) in self.devices.iter().enumerate() {
-            write!(f, "Device[name:{},[", name)?;
-            dev.fmt(f)?;
-            write!(f, "]")?;
+            write!(f, "Device[name:{},{}]", name, dev)?;
             if i < size {
                 write!(f, ", ")?;
             }
@@ -167,6 +165,10 @@ impl<R> fmt::Display for Room<R> {
 impl<R> Room<R> {
     pub fn new(devices: HashMap<String, SmartDevice<R>>) -> Self {
         Room { devices }
+    }
+
+    pub fn devices_count(&self) -> usize {
+        self.devices.len()
     }
 
     pub fn get_device(&self, name: &str) -> Option<&SmartDevice<R>> {
@@ -191,7 +193,7 @@ impl<R> Room<R> {
 #[derive(Debug, Default)]
 pub struct SmartHouse<R> {
     pub name: String,
-    rooms: HashMap<String, Room<R>>,
+    pub rooms: HashMap<String, Room<R>>,
 }
 
 impl<R> fmt::Display for SmartHouse<R> {
@@ -199,9 +201,7 @@ impl<R> fmt::Display for SmartHouse<R> {
         let rooms_count = self.rooms.len();
         write!(f, "SmartHome[name:{}, rooms[", self.name)?;
         for (idx, (room_name, room)) in self.rooms.iter().enumerate() {
-            write!(f, "Room[name:{},", room_name)?;
-            room.fmt(f)?;
-            write!(f, "]")?;
+            write!(f, "Room[name:{},{}]", room_name, room)?;
             if idx < rooms_count {
                 write!(f, ",")?;
             }
@@ -220,6 +220,10 @@ impl<R> SmartHouse<R> {
             name: name.into(),
             rooms,
         }
+    }
+
+    pub fn rooms_count(&self) -> usize {
+        self.rooms.len()
     }
 
     pub fn empty(name: String) -> Self {
@@ -248,7 +252,7 @@ impl<R> SmartHouse<R> {
     }
 }
 
-#[derive(Debug,PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct DeviceNotFound<'a> {
     room: &'a str,
     device: &'a str,
@@ -485,15 +489,16 @@ mod tests {
 
         let maybe_device = smart_house.get_device_mut("Molly's chamber", "s1");
         assert!(maybe_device.is_ok());
-        assert_eq!(maybe_device.unwrap().get_model(),"Europe");
+        assert_eq!(maybe_device.unwrap().get_model(), "Europe");
 
         let maybe_device = smart_house.get_device_mut("Jack's room", "foo-bar");
         assert!(maybe_device.is_err());
-        assert_eq!(maybe_device.err().unwrap(),DeviceNotFound{
-            room:"Jack's room",
-            device:"foo-bar"
-        });
-
+        assert_eq!(
+            maybe_device.err().unwrap(),
+            DeviceNotFound {
+                room: "Jack's room",
+                device: "foo-bar"
+            }
+        );
     }
-    
 }
