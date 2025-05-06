@@ -137,5 +137,4 @@ mod tests {
         assert!(report.is_ok());
         assert!(report.unwrap().contains("SmartHouse"));
     }
-
 }

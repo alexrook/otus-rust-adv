@@ -79,7 +79,7 @@ fn main() {
         .get_room_mut("Molly's chamber")
         .expect("Something wrong with your code, Molly's chamber expected");
 
-        let mut socket = Socket::new("Europe", rnd.clone());
+    let mut socket = Socket::new("Europe", rnd.clone());
     socket.on();
     mollys_room.add_device("ms2", socket.into());
     println!("-----after add Europe type socket to Molly's room---");
