@@ -139,6 +139,32 @@ impl<R> From<Thermometer<R>> for SmartDevice<R> {
         Self::Thermometer(value)
     }
 }
+#[derive(Debug)]
+pub struct DeviceConvError(pub &'static str);
+
+impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Socket<R> {
+    type Error = DeviceConvError;
+    fn try_from(value: &'a mut SmartDevice<R>) -> Result<Self, Self::Error> {
+        match value {
+            SmartDevice::Socket(s) => Ok(s),
+            SmartDevice::Thermometer(_) => Err(DeviceConvError(
+                "could not convert SmartDevice<Thermometer> to Socket",
+            )),
+        }
+    }
+}
+
+impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Thermometer<R> {
+    type Error = DeviceConvError;
+    fn try_from(value: &'a mut SmartDevice<R>) -> Result<Self, Self::Error> {
+        match value {
+            SmartDevice::Thermometer(t) => Ok(t),
+            SmartDevice::Socket(_) => Err(DeviceConvError(
+                "could not convert SmartDevice<Socket> to Thr",
+            )),
+        }
+    }
+}
 
 //Комната
 #[derive(Debug, Default)]
