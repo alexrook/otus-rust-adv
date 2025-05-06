@@ -55,7 +55,7 @@ fn main() {
     let room2: Room<ThreadRng> = Room::new(hashmap!(
             "js1".to_owned() => Socket::new("Type A", rnd.clone()).into(),
             "js2".to_owned() => Socket::new("Type A", rnd.clone()).into(),
-           "jst1".to_owned() =>  Thermometer::new("Farengate", rnd.clone()).into()));
+           "jt1".to_owned() =>  Thermometer::new("Farengate", rnd.clone()).into()));
 
     let mut smart_house: SmartHouse<ThreadRng> = SmartHouse::new(
         "The House That Jack Built",
@@ -65,5 +65,23 @@ fn main() {
         ),
     );
 
+    let room3: Room<ThreadRng> = Room::new(hashmap!(
+        "ms1".to_owned() => Socket::new("Type A", rnd.clone()).into(),
+        "mt1".to_owned() =>  Thermometer::new("Farengate", rnd.clone()).into()));
+
+    smart_house.add_room("Maiden's room", room3); //динамически добавляем команту
+    print_report(&mut smart_house);
+    smart_house.remove_room("Maiden's room");
+    println!("-----after delete room---");
+    print_report(&mut smart_house);
+
+    let mollys_room: &mut Room<ThreadRng> = smart_house
+        .get_room_mut("Molly's chamber")
+        .expect("Something wrong with your code, Molly's chamber expected");
+
+        let mut socket = Socket::new("Europe", rnd.clone());
+    socket.on();
+    mollys_room.add_device("ms2", socket.into());
+    println!("-----after add Europe type socket to Molly's room---");
     print_report(&mut smart_house);
 }
