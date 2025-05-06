@@ -206,8 +206,11 @@ impl<R> Room<R> {
     }
 
     //returns an old device if it presents
-    pub fn add_device(&mut self, name: String, device: SmartDevice<R>) -> Option<SmartDevice<R>> {
-        self.devices.insert(name, device)
+    pub fn add_device<S>(&mut self, name: S, device: SmartDevice<R>) -> Option<SmartDevice<R>>
+    where
+        S: Into<String>,
+    {
+        self.devices.insert(name.into(), device)
     }
 
     pub fn remove_device(&mut self, name: &str) -> Option<SmartDevice<R>> {
@@ -246,6 +249,17 @@ impl<R> SmartHouse<R> {
             name: name.into(),
             rooms,
         }
+    }
+
+    pub fn add_room<S>(&mut self, room_name: S, room: Room<R>) -> Option<Room<R>>
+    where
+        S: Into<String>,
+    {
+        self.rooms.insert(room_name.into(), room)
+    }
+
+    pub fn remove_room(&mut self, room_name: &str) -> Option<Room<R>> {
+        self.rooms.remove(room_name)
     }
 
     pub fn rooms_count(&self) -> usize {
