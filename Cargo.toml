@@ -2,7 +2,8 @@
 
 members = [
     "lesson03-hw1",
-    "lesson08-hw2"
+    "lesson08-hw2",
+    "lesson15-hw3"
 ]
 
 resolver = "2"
