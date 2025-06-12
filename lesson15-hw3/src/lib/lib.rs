@@ -1,1 +1,2 @@
-pub mod smarthome;
+pub mod devices;
+pub mod smarthouse;
