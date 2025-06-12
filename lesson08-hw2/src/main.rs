@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use lesson8_hw2::{
+use lesson08_hw2::{
     hashmap,
     report::print_report,
     smarthome::{Room, SmartDevice, SmartHouse, Socket, Thermometer},

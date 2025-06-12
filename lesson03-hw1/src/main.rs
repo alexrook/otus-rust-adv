@@ -1,4 +1,4 @@
-use lesson3_hw1::smarthome::{AnyRoom, Room, SmartDevice, SmartHouse, Socket, Thermometer};
+use lesson03_hw1::smarthome::{AnyRoom, Room, SmartDevice, SmartHouse, Socket, Thermometer};
 use rand::Rng;
 
 fn main() {
