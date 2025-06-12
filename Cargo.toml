@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "lesson3-hw1",
-    "lesson8-hw2",
+    "lesson03-hw1",
+    "lesson08-hw2"
 ]
 
 resolver = "2"
