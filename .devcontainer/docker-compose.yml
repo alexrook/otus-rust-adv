@@ -14,4 +14,4 @@ services:
     networks:
       - app-network
     volumes:
-      - .:/workspace:cached  # Mount the root folder that contains .git
+      - ../:/workspace:cached  # Mount the root folder that contains .git
