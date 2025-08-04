@@ -1,8 +1,6 @@
 FROM mcr.microsoft.com/devcontainers/rust:bookworm
 
 ARG USERNAME
-ARG USER_UID
-ARG USER_GID
 
 # Add packages
 RUN apt-get update
@@ -15,8 +13,7 @@ RUN rustup component add clippy
 RUN cargo install cargo-expand
 
 # Create the user
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -G vscode,rustlang -m $USERNAME \
+RUN useradd -s /bin/bash --uid 1002 --gid vscode -G rustlang -m $USERNAME \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
