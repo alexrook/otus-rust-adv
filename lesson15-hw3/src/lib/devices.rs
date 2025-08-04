@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    fmt::{self},
-};
+use std::fmt::{self};
 
 use rand::Rng;
 
@@ -11,39 +8,40 @@ pub trait WithModel {
 
 //Термометр
 #[derive(Debug, Clone)]
-pub struct Thermometer<R> {
+pub struct Thermometer {
     model: String,
-    rnd: R,
+    temperature: f32,
 }
 
-impl<R> WithModel for Thermometer<R> {
+impl WithModel for Thermometer {
     fn get_model(&self) -> &str {
         &self.model
     }
 }
 
-impl<R> fmt::Display for Thermometer<R> {
+impl fmt::Display for Thermometer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Thermometer[model:{}]", self.get_model())
     }
 }
 
-impl<R> Thermometer<R> {
-    pub fn new<S>(model: S, rnd: R) -> Self
+impl Thermometer {
+    pub fn new<S>(model: S) -> Self
     where
         S: Into<String>,
     {
         Thermometer {
             model: model.into(),
-            rnd,
+            temperature: 0_f32,
         }
     }
 
-    pub fn themperature(&mut self) -> f32
-    where
-        R: Rng,
-    {
-        self.rnd.random::<f32>() * 100_f32
+    pub fn themperature(&self) -> f32 {
+        self.temperature
+    }
+
+    pub fn set_temperature(&mut self, new_temperature: f32) {
+        self.temperature = new_temperature
     }
 }
 
@@ -106,7 +104,7 @@ impl<R> Socket<R> {
 
 #[derive(Debug)]
 pub enum SmartDevice<R> {
-    Thermometer(Thermometer<R>),
+    Thermometer(Thermometer),
     Socket(Socket<R>),
 }
 
@@ -134,8 +132,8 @@ impl<R> From<Socket<R>> for SmartDevice<R> {
     }
 }
 
-impl<R> From<Thermometer<R>> for SmartDevice<R> {
-    fn from(value: Thermometer<R>) -> Self {
+impl<R> From<Thermometer> for SmartDevice<R> {
+    fn from(value: Thermometer) -> Self {
         Self::Thermometer(value)
     }
 }
@@ -155,7 +153,7 @@ impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Socket<R> {
     }
 }
 
-impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Thermometer<R> {
+impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Thermometer {
     type Error = DeviceConvError;
     fn try_from(value: &'a mut SmartDevice<R>) -> Result<Self, Self::Error> {
         match value {
@@ -167,18 +165,20 @@ impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Thermometer<R> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use rand::rngs::ThreadRng;
 
     use super::*;
 
     #[test]
     fn thermometer_should_work() {
-        let mut t1 = Thermometer::new("Farengate", rand::rng());
-        let th1 = t1.themperature();
-        assert!(size_of_val(&th1) > 0); //just in case
+        let mut instance = Thermometer::new("Farengate");
+        let th1 = instance.themperature();
+        assert!(th1 == 0_f32); 
+
+        instance.set_temperature(42_f32);
+        assert!(instance.temperature == 42_f32);
+
     }
 
     #[test]
@@ -195,6 +195,5 @@ mod tests {
         let power = s1.power();
         assert_eq!(power, 0.0); //bcs it's off
     }
-
     
 }
