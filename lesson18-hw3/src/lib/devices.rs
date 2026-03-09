@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    fmt::{self},
-};
+use std::fmt;
 
 use rand::Rng;
 
@@ -49,19 +46,18 @@ impl<R> Thermometer<R> {
 
 //Розетка
 #[derive(Debug, Clone)]
-pub struct Socket<R> {
+pub struct Socket {
     model: String,
     pub is_on: bool,
-    rnd: R,
 }
 
-impl<R> WithModel for Socket<R> {
+impl WithModel for Socket {
     fn get_model(&self) -> &str {
         &self.model
     }
 }
 
-impl<R> fmt::Display for Socket<R> {
+impl fmt::Display for Socket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -72,15 +68,14 @@ impl<R> fmt::Display for Socket<R> {
     }
 }
 
-impl<R> Socket<R> {
-    pub fn new<S>(model: S, rnd: R) -> Self
+impl Socket {
+    pub fn new<S>(model: S) -> Self
     where
         S: Into<String>,
     {
         Socket {
             model: model.into(),
             is_on: false,
-            rnd,
         }
     }
 
@@ -91,23 +86,12 @@ impl<R> Socket<R> {
     pub fn off(&mut self) {
         self.is_on = false
     }
-
-    pub fn power(&mut self) -> f32
-    where
-        R: Rng,
-    {
-        if self.is_on {
-            self.rnd.random::<f32>() + 0.1
-        } else {
-            0.0
-        }
-    }
 }
 
 #[derive(Debug)]
 pub enum SmartDevice<R> {
     Thermometer(Thermometer<R>),
-    Socket(Socket<R>),
+    Socket(Socket),
 }
 
 impl<R> WithModel for SmartDevice<R> {
@@ -128,8 +112,8 @@ impl<R> fmt::Display for SmartDevice<R> {
     }
 }
 
-impl<R> From<Socket<R>> for SmartDevice<R> {
-    fn from(value: Socket<R>) -> Self {
+impl<R> From<Socket> for SmartDevice<R> {
+    fn from(value: Socket) -> Self {
         Self::Socket(value)
     }
 }
@@ -143,7 +127,7 @@ impl<R> From<Thermometer<R>> for SmartDevice<R> {
 #[derive(Debug)]
 pub struct DeviceConvError(pub &'static str);
 
-impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Socket<R> {
+impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Socket {
     type Error = DeviceConvError;
     fn try_from(value: &'a mut SmartDevice<R>) -> Result<Self, Self::Error> {
         match value {
@@ -167,10 +151,8 @@ impl<'a, R> TryFrom<&'a mut SmartDevice<R>> for &'a mut Thermometer<R> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use rand::rngs::ThreadRng;
 
     use super::*;
 
@@ -183,18 +165,12 @@ mod tests {
 
     #[test]
     fn socket_should_work() {
-        let mut s1 = Socket::new("Type A", rand::rng());
+        let mut s1 = Socket::new("Type A");
 
         s1.on();
         assert!(s1.is_on);
-        let power = s1.power();
-        assert!(power > 0.0);
 
         s1.off();
         assert!(!s1.is_on);
-        let power = s1.power();
-        assert_eq!(power, 0.0); //bcs it's off
     }
-
-    
 }

@@ -15,10 +15,10 @@ async fn main() {
 
     tokio::select! {
         val = rx1 => {
-            println!("rx1 completed first with {:?}", val);
+            println!("rx1 completed first with {val:?}");
         }
         val = rx2 => {
-            println!("rx2 completed first with {:?}", val);
+            println!("rx2 completed first with {val:?}");
         }
     }
 }
