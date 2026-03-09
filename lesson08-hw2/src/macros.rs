@@ -13,5 +13,5 @@ macro_rules! hashmap {
 
 pub fn demo() {
     let m = hashmap! { "a" => 1, "b" => 2, "w"=> 24 };
-    println!("{:?}", m);
+    println!("{m:?}");
 }

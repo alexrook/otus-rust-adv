@@ -64,7 +64,7 @@ impl<R: Rng> Report for Room<R> {
         write!(f, "Report for Room[")?;
         write!(f, "it containts {} devices:", self.devices_count())?;
         for (n, device) in &mut self.devices {
-            write!(f, ", {}:", n)?;
+            write!(f, ", {n}:")?;
             device.mk_report(f)?;
         }
         write!(f, "]")
@@ -76,7 +76,7 @@ impl<R: Rng> Report for SmartHouse<R> {
         write!(f, "Report for SmartHouse[")?;
         write!(f, "it containts {} rooms:", self.rooms_count())?;
         for (name, room) in &mut self.rooms {
-            write!(f, ", {}:", name)?;
+            write!(f, ", {name}:")?;
             room.mk_report(f)?;
         }
         write!(f, "]")

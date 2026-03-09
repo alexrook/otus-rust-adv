@@ -178,7 +178,7 @@ impl<R> fmt::Display for Room<R> {
         write!(f, "Room[devices[")?;
 
         for (i, (name, dev)) in self.devices.iter().enumerate() {
-            write!(f, "Device[name:{},{}]", name, dev)?;
+            write!(f, "Device[name:{name},{dev}]")?;
             if i < size {
                 write!(f, ", ")?;
             }
@@ -230,7 +230,7 @@ impl<R> fmt::Display for SmartHouse<R> {
         let rooms_count = self.rooms.len();
         write!(f, "SmartHome[name:{}, rooms[", self.name)?;
         for (idx, (room_name, room)) in self.rooms.iter().enumerate() {
-            write!(f, "Room[name:{},{}]", room_name, room)?;
+            write!(f, "Room[name:{room_name},{room}]")?;
             if idx < rooms_count {
                 write!(f, ",")?;
             }

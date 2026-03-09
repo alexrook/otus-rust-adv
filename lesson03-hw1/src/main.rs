@@ -29,7 +29,7 @@ fn main() {
 
     let mut smart_house = SmartHouse::new(123, rooms);
 
-    println!("{:}", smart_house);
+    println!("{smart_house:}");
 
     let room1 = smart_house.get_room_mut(0);
     device_on(room1.get_device_mut(0));
@@ -38,7 +38,7 @@ fn main() {
     device_on(room2.get_device_mut(0));
     device_on(room2.get_device_mut(1));
 
-    println!("{:}", smart_house);
+    println!("{smart_house:}");
 }
 
 fn device_on<R: Rng>(device: &mut SmartDevice<R>) {
