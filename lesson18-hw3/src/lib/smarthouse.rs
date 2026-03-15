@@ -158,7 +158,10 @@ mod tests {
     fn room_const_should_work() {
         let rnd = rand::rng();
         let r1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 2.0).unwrap().into(),
+            ),
             (
                 "therm1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -171,7 +174,7 @@ mod tests {
     #[test]
     fn room_get_device_should_work() {
         let rnd = rand::rng();
-        let socket = Socket::new(123.to_string());
+        let socket = Socket::new(123.to_string(), 2.1).unwrap();
         let thermometer = Thermometer::new(345.to_string(), rnd.clone());
         let mut r1 = Room::new(HashMap::from([
             ("s1".to_owned(), socket.into()),
@@ -197,7 +200,10 @@ mod tests {
     fn room_display_should_work() {
         let rnd = rand::rng();
         let r1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 2.5).unwrap().into(),
+            ),
             (
                 "therm1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -217,7 +223,10 @@ mod tests {
         let rnd = rand::rng();
 
         let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 0.1).unwrap().into(),
+            ),
             (
                 "therm1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -225,8 +234,14 @@ mod tests {
         ]));
 
         let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
-            ("socket2".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 2.5).unwrap().into(),
+            ),
+            (
+                "socket2".to_owned(),
+                Socket::new("Europe", 3.1).unwrap().into(),
+            ),
             (
                 "therm1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -249,7 +264,10 @@ mod tests {
         let rnd = rand::rng();
 
         let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 2.5).unwrap().into(),
+            ),
             (
                 "therm1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -257,8 +275,14 @@ mod tests {
         ]));
 
         let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("socket1".to_owned(), Socket::new("Europe").into()),
-            ("socket2".to_owned(), Socket::new("Europe").into()),
+            (
+                "socket1".to_owned(),
+                Socket::new("Europe", 0.5).unwrap().into(),
+            ),
+            (
+                "socket2".to_owned(),
+                Socket::new("Europe", 0.5).unwrap().into(),
+            ),
             (
                 "t1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -295,7 +319,7 @@ mod tests {
         let rnd = rand::rng();
 
         let room1: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("s1".to_owned(), Socket::new("Europe").into()),
+            ("s1".to_owned(), Socket::new("Europe", 1.2).unwrap().into()),
             (
                 "t1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),
@@ -303,8 +327,8 @@ mod tests {
         ]));
 
         let room2: Room<ThreadRng> = Room::new(HashMap::<String, SmartDevice<ThreadRng>>::from([
-            ("s1".to_owned(), Socket::new("Europe").into()),
-            ("s2".to_owned(), Socket::new("Europe").into()),
+            ("s1".to_owned(), Socket::new("Europe", 0.1).unwrap().into()),
+            ("s2".to_owned(), Socket::new("Europe", 0.5).unwrap().into()),
             (
                 "t1".to_owned(),
                 Thermometer::new("Celsius", rnd.clone()).into(),

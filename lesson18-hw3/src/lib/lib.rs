@@ -1,3 +1,3 @@
 pub mod devices;
+pub mod marshalling_proto;
 pub mod smarthouse;
-pub mod therm_proto;

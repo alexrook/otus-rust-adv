@@ -49,6 +49,7 @@ impl<R> Thermometer<R> {
 pub struct Socket {
     model: String,
     pub is_on: bool,
+    pow: f32,
 }
 
 impl WithModel for Socket {
@@ -61,21 +62,27 @@ impl fmt::Display for Socket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Socket[model:{}, is_on:{}]",
+            "Socket[model:{},pow:{} is_on:{}]",
             self.get_model(),
+            self.pow,
             self.is_on,
         )
     }
 }
 
 impl Socket {
-    pub fn new<S>(model: S) -> Self
+    pub fn new<S>(model: S, pow: f32) -> Result<Self, &'static str>
     where
         S: Into<String>,
     {
-        Socket {
-            model: model.into(),
-            is_on: false,
+        if pow > 0_f32 {
+            Ok(Socket {
+                model: model.into(),
+                is_on: false,
+                pow,
+            })
+        } else {
+            Err("The Socket power should be >0")
         }
     }
 
@@ -85,6 +92,10 @@ impl Socket {
 
     pub fn off(&mut self) {
         self.is_on = false
+    }
+
+    pub fn get_pow(&self) -> f32 {
+        self.pow
     }
 }
 
@@ -165,7 +176,7 @@ mod tests {
 
     #[test]
     fn socket_should_work() {
-        let mut s1 = Socket::new("Type A");
+        let mut s1 = Socket::new("Type A", 1.2_f32).unwrap();
 
         s1.on();
         assert!(s1.is_on);
